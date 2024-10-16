@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch dev script in debug console",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "request": "launch",
+      "type": "node",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

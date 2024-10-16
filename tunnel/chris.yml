@@ -1,0 +1,5 @@
+tunnel: ab4bff33-fdf7-4ef2-8c56-a03891f04c8b
+credentials-file: /home/chris/.cloudflared/ab4bff33-fdf7-4ef2-8c56-a03891f04c8b.json
+
+ingress:
+  - service: http://localhost:5600
