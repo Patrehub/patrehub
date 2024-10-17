@@ -9,6 +9,7 @@ const passport = require("passport");
 const patreonStrategy = require("passport-patreon").Strategy;
 
 const dashboardController = require("./src/controllers/dashboard");
+const authGithubController = require("./src/controllers/authGithub");
 const webhooksPatreonController = require("./src/controllers/webhooksPatreon");
 
 passport.use(
@@ -58,6 +59,9 @@ app.use(passport.session());
 
 app.get("/", dashboardController.home());
 app.post("/webhooks/patreon", webhooksPatreonController.create());
+
+app.get("/auth/github", authGithubController.redirect());
+app.get("/auth/github/callback", authGithubController.callback());
 
 app.get("/auth/patreon", passport.authenticate("patreon"));
 app.get(
