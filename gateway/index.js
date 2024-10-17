@@ -38,6 +38,21 @@ const app = express();
 // view engine setup
 app.set("views", path.join(__dirname, "src/views"));
 app.set("view engine", "ejs");
+app.use(express.static(path.join(__dirname, "public")));
+
+if (process.env.NODE_ENV === "development") {
+  var livereload = require("livereload");
+  var connectLiveReload = require("connect-livereload");
+
+  const liveReloadServer = livereload.createServer();
+  liveReloadServer.watch(path.join(__dirname, "public"));
+  liveReloadServer.server.once("connection", () => {
+    setTimeout(() => {
+      liveReloadServer.refresh("/");
+    }, 100);
+  });
+  app.use(connectLiveReload());
+}
 
 app.use(express.text({ type: "*/*" }));
 app.use(express.urlencoded({ extended: false }));
