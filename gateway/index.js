@@ -4,6 +4,7 @@ const path = require("path");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+var FileStore = require("session-file-store")(session);
 const csrf = require("csurf");
 const passport = require("passport");
 const patreonStrategy = require("passport-patreon").Strategy;
@@ -12,6 +13,8 @@ const dashboardController = require("./src/controllers/dashboard");
 const authGithubController = require("./src/controllers/authGithub");
 const webhooksPatreonController = require("./src/controllers/webhooksPatreon");
 
+const db = require("./src/data/db");
+
 passport.use(
   new patreonStrategy(
     {
@@ -19,18 +22,28 @@ passport.use(
       clientSecret: process.env.PATREON_CLIENT_SECRET,
       callbackURL: process.env.PATREON_CALLBACK_URL,
     },
-    function (accessToken, refreshToken, profile, done) {
-      return done(null, { name: profile.name, id: profile.id });
+    async function (accessToken, refreshToken, profile, done) {
+      try {
+        const user = await db.upsertUser(profile);
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
     }
   )
 );
 
 passport.serializeUser(function (user, done) {
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser(function (user, done) {
-  done(null, user);
+passport.deserializeUser(async function (id, done) {
+  try {
+    const user = await db.getUserById(id);
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
 });
 
 const app = express();
@@ -61,32 +74,30 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: { secure: process.env.COOKIE_SECURE === "true" },
+    store: new FileStore(),
   })
 );
+app.use(passport.session());
 app.use(csrf());
 app.use(function (req, res, next) {
   res.locals.csrfToken = req.csrfToken();
   next();
 });
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.get("/", dashboardController.home());
+app.get("/sync", dashboardController.sync());
 app.post("/webhooks/patreon", webhooksPatreonController.create());
 
 app.get("/auth/github", authGithubController.redirect());
 app.get("/auth/github/callback", authGithubController.callback());
 
 app.get("/auth/patreon", passport.authenticate("patreon"));
-app.get(
-  "/auth/patreon/callback",
-  passport.authenticate("patreon", { failureRedirect: "/" }),
-  function (req, res) {
-    // Successful authentication, redirect home.
-    res.redirect("/");
-  }
-);
+app.get("/auth/patreon/callback", passport.authenticate("patreon", { failureRedirect: "/" }), function (req, res) {
+  // Successful authentication, redirect home.
+  res.redirect("/");
+});
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {
@@ -97,4 +108,9 @@ app.use((err, req, res, next) => {
   return;
 });
 
-app.listen(5600, () => console.log("listening on port: 5600"));
+const init = async () => {
+  await db.init();
+  app.listen(5600, () => console.log("listening on port: 5600"));
+};
+
+init();

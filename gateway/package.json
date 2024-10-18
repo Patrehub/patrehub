@@ -1,16 +1,16 @@
 {
-  "name": "gateway",
+  "name": "patrehub",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon --inspect index.js -e ejs,js,css,html,jpg,png,scss",
-    "tailwind:css": "postcss public/styles/tailwind.css -o public/styles/style.css"
+    "server": "NODE_ENV=development nodemon --inspect index.js -e ejs,js,css,html,jpg,png",
+    "tailwind": "tailwindcss -i ./tailwind/tailwind.css -o ./public/styles/style.css --watch --minify",
+    "dev": "run-p server tailwind"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "autoprefixer": "^10.4.20",
     "cookie-parser": "^1.4.7",
     "csurf": "^1.2.2",
     "dotenv": "^16.4.5",
@@ -19,17 +19,19 @@
     "express-session": "^1.18.1",
     "form-urlencoded": "^6.1.5",
     "mkdirp": "^3.0.1",
+    "octokit": "^4.0.2",
     "passport": "^0.7.0",
     "passport-patreon": "^1.0.0",
     "patreon": "^0.0.1",
-    "postcss": "^8.4.47",
-    "postcss-cli": "^11.0.0",
+    "sequelize": "^6.37.4",
+    "session-file-store": "^1.5.0",
     "sqlite3": "^5.1.7",
     "tailwindcss": "^3.4.14"
   },
   "devDependencies": {
     "connect-livereload": "^0.6.1",
     "livereload": "^0.9.3",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "npm-run-all": "^4.1.5"
   }
 }

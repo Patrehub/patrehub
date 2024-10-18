@@ -1,5 +1,10 @@
 const { format: formatUrl } = require("url");
 const formurlencoded = require("form-urlencoded");
+const crypt = require("../lib/crypt");
+
+const encrypter = new crypt(process.env.ENCRYPTION_KEY);
+const db = require("../data/db");
+const gh = require("../services/github");
 
 function errMap(err, params) {
   if (err === "invalid_grant") {
@@ -84,9 +89,13 @@ const getProfile = async ({ access_token }) => {
 };
 
 const redirect = () => async (req, res, next) => {
+  if (!req.user) {
+    return res.redirect("/");
+  }
+
   const clientId = process.env.GITHUB_CLIENT_ID;
   const redirect = process.env.GITHUB_CALLBACK_URL;
-  //   const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+  const state = encrypter.encrypt(req.user.id.toString());
 
   const loginUrl = formatUrl({
     protocol: "https",
@@ -96,7 +105,7 @@ const redirect = () => async (req, res, next) => {
       response_type: "code",
       client_id: clientId,
       redirect_uri: redirect,
-      state: "todo",
+      state,
     },
   });
 
@@ -106,14 +115,13 @@ const redirect = () => async (req, res, next) => {
 const callback = () => async (req, res, next) => {
   try {
     const { code, state } = req.query;
+    const userId = encrypter.decrypt(state);
+    const user = await db.getUserById(userId);
     const token = await getAccessToken(code);
     const profile = await getProfile(token);
 
-    // load up the user profile.
-
-    // use the state to look up the user.
-
-    console.log(profile);
+    await db.connectGitHub(user, profile);
+    await gh.syncUser(user);
 
     res.redirect("/");
   } catch (err) {

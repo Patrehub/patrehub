@@ -2,14 +2,9 @@
 
 module.exports = {
   darkMode: "selector",
-  content: ["./src/views/*.ejs"],
+  content: ["./src/views/*.ejs", "./src/views/partials/*.ejs"],
   theme: {
     extend: {},
   },
-  plugins: [
-    {
-      tailwindcss: {},
-      autoprefixer: {},
-    },
-  ],
+  plugins: [],
 };

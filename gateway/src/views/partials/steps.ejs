@@ -1,0 +1,8 @@
+<div class="overflow-hidden mt-6 rounded-full bg-gray-200">
+  <div class="h-2 rounded-full bg-indigo-600" style="width: <%= (active/3 * 100).toFixed(2) %>%"></div>
+</div>
+<div class="mt-6 hidden grid-cols-3 text-sm font-medium text-gray-600 sm:grid">
+  <div class="text-center <%= active >= 1 ? "text-indigo-600" : ""%>">Login</div>
+  <div class="text-center <%= active >= 2 ? "text-indigo-600" : ""%>">Connect</div>
+  <div class="text-center <%= active >= 3 ? "text-indigo-600" : ""%>">Mission Completed</div>
+</div>
